@@ -71,12 +71,14 @@
   .stat .s{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 7px;font-weight:700;color:var(--muted)}
   .stat .s.red{color:var(--warn);border-color:var(--warn);background:var(--warn-bg)}
   .students{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1}
-  .scard{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 9px;cursor:grab;display:flex;align-items:center;gap:7px;font-size:13px}
+  .scard{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 9px;cursor:grab;display:flex;flex-direction:column;align-items:stretch;gap:4px;font-size:13px}
   .scard:active{cursor:grabbing}
   .scard.sel{outline:2px solid var(--accent);outline-offset:-1px}
   .scard.lock{border-left:3px solid var(--accent)}
-  .scard .nm{font-weight:700}
-  .scard .sc{margin-left:auto;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .scard .top{display:flex;align-items:center;gap:7px}
+  .scard .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .scard .ctags{display:flex;flex-wrap:wrap;gap:3px;padding-left:19px}
+  .scard .sc{margin-left:auto;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;flex:none}
   .scard .sc small{display:block;font-weight:600;color:var(--muted);font-size:10px}
   .scard .lk{cursor:pointer;opacity:.45;font-size:12px}
   .scard .lk.on{opacity:1}
@@ -604,10 +606,11 @@ function studentCard(s){
   const d=document.createElement("div");
   d.className="scard"+(s.locked?" lock":"")+(swapSel===s.id?" sel":"");
   d.draggable=true;d.dataset.id=s.id;
-  const tg=(s.tags||[]).slice(0,3).map(t=>tagHTML(t,true)).join("");
-  d.innerHTML=`<span class="lk ${s.locked?"on":""}" title="고정">${s.locked?"🔒":"🔓"}</span>
-    <span class="nm">${esc(s.name)}</span><span class="pill ${s.gender==="남"?"m":"f"}">${esc(s.gender)}</span>
-    ${tg}<span class="sc">${total(s)}<small>성${s.grade??"-"}·태${s.attitude??"-"}</small></span>`;
+  const tg=(s.tags||[]).map(t=>tagHTML(t,true)).join("");
+  d.innerHTML=`<div class="top"><span class="lk ${s.locked?"on":""}" title="고정">${s.locked?"🔒":"🔓"}</span>`
+    +`<span class="nm">${esc(s.name)}</span><span class="pill ${s.gender==="남"?"m":"f"}">${esc(s.gender)}</span>`
+    +`<span class="sc">${total(s)}<small>성${s.grade??"-"}·태${s.attitude??"-"}</small></span></div>`
+    +(tg?`<div class="ctags">${tg}</div>`:"");
   d.querySelector(".lk").onclick=e=>{e.stopPropagation();s.locked=!s.locked;save();renderPlacement();};
   d.ondragstart=e=>{e.dataTransfer.setData("id",s.id);e.dataTransfer.effectAllowed="move";};
   d.onclick=()=>{ if(!swapMode)return;
