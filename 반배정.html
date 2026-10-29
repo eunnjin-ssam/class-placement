@@ -33,7 +33,7 @@
   .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
   .card h2{margin:0 0 4px;font-size:15px;font-weight:800}
-  .card .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
   label.fld{display:block;margin-bottom:12px}
   label.fld>span{display:block;font-weight:700;font-size:12.5px;margin-bottom:5px;color:var(--muted)}
   input,select,textarea{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font:inherit}
@@ -153,47 +153,16 @@
 
   <!-- ============ STUDENTS ============ -->
   <section id="view-students" hidden>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <h2 style="margin:0">학생 명단 <span class="muted" id="stCount"></span></h2>
-        <div class="btnbar">
-          <label class="tiny" style="display:flex;align-items:center;gap:5px">정렬
-            <select id="sortMode" style="width:auto;padding:5px 8px">
-              <option value="score">점수 높은순</option>
-              <option value="name">이름 가나다순</option>
-            </select></label>
-          <button class="sm primary" id="addStudent">+ 학생</button>
-          <button class="sm ghost" id="exportCsv">💾 명단 저장하기</button>
-          <button class="sm danger" id="clearStudents">전체삭제</button>
-        </div>
-      </div>
-      <p class="sub" style="margin-top:6px">성적·태도는 각 <b>50점 만점</b>, 총점 100점. 순위는 총점 기준입니다. 이름을 눌러 수정하세요.</p>
-      <div style="overflow:auto">
-        <table id="stTable">
-          <thead><tr>
-            <th style="width:46px">순위</th><th class="nm">이름</th><th style="width:58px">성별</th>
-            <th style="width:64px">성적</th><th style="width:64px">태도</th>
-            <th style="width:64px">총점</th><th style="width:92px">현재반</th><th>태그</th>
-          </tr></thead>
-          <tbody id="stBody"></tbody>
-        </table>
-      </div>
-      <div class="empty" id="stEmpty">학생이 없습니다. “+ 학생” 또는 아래 “엑셀/CSV 가져오기”를 이용하세요.</div>
-    </div>
-
     <details id="importBox">
-      <summary>📋 엑셀 / CSV 가져오기</summary>
+      <summary>📋 엑셀 가져오기</summary>
       <div class="inner">
-        <p class="sub">엑셀에서 복사해 붙여넣으면 한 번에 등록됩니다. 열 순서: <b>이름 · 성별(남/여) · 성적 · 태도 · 현재반 · 태그</b>. 태그가 여러 개면 <b>쉼표(,)</b>로 구분하세요(예: 남산원, 느린학습자). 머리글 줄은 자동으로 건너뜁니다.</p>
-        <p class="tiny" style="margin:-8px 0 10px">💡 엑셀에서 현재반에 <b>5-1</b>처럼 넣으면 날짜(5월 1일)로 바뀔 수 있어요. 앞에 작은따옴표를 붙여 <b>'5-1</b>로 입력하거나 그 열을 ‘텍스트’ 서식으로 지정하면 됩니다. (날짜로 바뀐 채 들어와도 가져올 때 <b>5-1</b> 형태로 자동 복원합니다.)</p>
+        <p class="sub" style="line-height:1.7">1. 엑셀에서 전체 복사하여 붙여넣으면 등록됩니다.<br>2. 태그가 여러 개일 경우 쉼표(,)로 구분하세요.</p>
         <textarea id="paste" placeholder="김민준	남	46	43	2-1	리더&#10;이서연	여	39	48	2-2	&#10;..."></textarea>
         <div class="btnbar" style="margin-top:10px">
-          <button class="ghost" id="tplBtn" title="모든 열이 텍스트 서식인 엑셀 양식">⬇ 입력 양식(엑셀)</button>
-          <button class="ghost sm" id="tplCsvBtn" title="CSV 양식으로 받기">CSV로</button>
-          <button class="primary" id="importBtn">붙여넣기 반영</button>
+          <button class="ghost" id="tplBtn" title="모든 열이 텍스트 서식인 엑셀 양식" style="min-width:126px">⬇ 입력양식 다운</button>
+          <button class="primary" id="importBtn" style="min-width:126px">붙여넣기 반영</button>
           <button class="ghost sm" id="sampleBtn">예시 데이터 채우기</button>
         </div>
-        <p class="tiny" style="margin:8px 0 0">① <b>입력 양식(엑셀)</b>을 내려받아 채운 뒤(모든 열이 ‘텍스트’ 서식이라 <b>5-1</b>도 날짜로 안 바뀝니다) → ② 셀을 복사해 위에 붙여넣고 <b>붙여넣기 반영</b></p>
       </div>
     </details>
 
@@ -208,6 +177,33 @@
         </div>
       </div>
     </details>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h2 style="margin:0">학생 명단 <span class="muted" id="stCount"></span></h2>
+        <div class="btnbar">
+          <label class="tiny" style="display:flex;align-items:center;gap:5px">정렬
+            <select id="sortMode" style="width:auto;padding:5px 8px">
+              <option value="score">점수 높은순</option>
+              <option value="name">이름 가나다순</option>
+            </select></label>
+          <button class="sm primary" id="addStudent">+ 학생</button>
+          <button class="sm danger" id="clearStudents">전체삭제</button>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:6px">성적·태도는 각 <b>50점 만점</b>, 총점 100점. 순위는 총점 기준입니다. 이름을 눌러 수정하세요.</p>
+      <div style="overflow:auto">
+        <table id="stTable">
+          <thead><tr>
+            <th style="width:46px">순위</th><th class="nm">이름</th><th style="width:58px">성별</th>
+            <th style="width:64px">성적</th><th style="width:64px">태도</th>
+            <th style="width:64px">총점</th><th style="width:92px">현재반</th><th>태그</th>
+          </tr></thead>
+          <tbody id="stBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="stEmpty">학생이 없습니다. “+ 학생” 또는 위 “엑셀/CSV 가져오기”를 이용하세요.</div>
+    </div>
   </section>
 
   <!-- ============ PLACEMENT ============ -->
@@ -283,7 +279,7 @@
 <script>
 "use strict";
 const KEY="classplace.v2";
-const DEFAULT_TAGS=["요주의","특수","남산원","쌍둥이","이름중복","분리필요","리더","느린학습자","정서","다문화","건강","민원주의"];
+const DEFAULT_TAGS=["요주의","특수","남산원","쌍둥이","이름중복","분리필요","리더","학습부진"];
 let st;
 
 function blank(){
@@ -293,7 +289,13 @@ function blank(){
 }
 function load(){ try{const r=localStorage.getItem(KEY); st=r?JSON.parse(r):blank();}catch(e){st=blank();}
   if(!st.tags)st.tags=[...DEFAULT_TAGS]; if(!st.students)st.students=[]; if(!st.classes)st.classes=[];
-  if(!st.seq)st.seq=1; if(!st.sortMode)st.sortMode="score"; }
+  if(!st.seq)st.seq=1; if(!st.sortMode)st.sortMode="score";
+  if(!st.tagsR1){ // 1회 정리: 느린학습자→학습부진, 정서·다문화·건강·민원주의 제거
+    const ren=t=>t==="느린학습자"?"학습부진":t, drop=["정서","다문화","건강","민원주의"];
+    st.tags=[...new Set(st.tags.map(ren).filter(t=>!drop.includes(t)))];
+    st.students.forEach(s=>{if(s.tags)s.tags=[...new Set(s.tags.map(ren).filter(t=>!drop.includes(t)))];});
+    st.tagsR1=true; try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}
+  } }
 let saveT;
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}
   clearTimeout(saveT); const el=document.getElementById("saveinfo"); el.textContent="저장됨 ✓";
@@ -799,7 +801,7 @@ $("#sampleBtn").onclick=()=>{$("#paste").value=
 박도윤	남	32	35	2-1	요주의
 최지우	여	44	45	2-3	쌍둥이
 최민서	남	42	44	2-3	쌍둥이
-정하준	남	27	30	2-4	느린학습자, 정서
+정하준	남	27	30	2-4	학습부진
 강서윤	여	48	46	2-2	리더
 윤지호	남	36	37	2-1
 임하은	여	40	41	2-4	남산원
@@ -808,12 +810,10 @@ $("#sampleBtn").onclick=()=>{$("#paste").value=
 배수아	여	45	40	2-1	이름중복
 배수하	여	38	42	2-4	이름중복
 신예준	남	41	39	2-3
-류지안	여	34	36	2-2	다문화
-문건우	남	38	45	2-4	건강`;};
+류지안	여	34	36	2-2
+문건우	남	38	45	2-4	`;};
 $("#addStudent").onclick=()=>editStudent(null);
 $("#tplBtn").onclick=downloadXlsx;
-$("#tplCsvBtn").onclick=downloadTemplate;
-$("#exportCsv").onclick=exportCsv;
 $("#clearStudents").onclick=async()=>{if(await askConfirm("모든 학생을 삭제할까요? (되돌릴 수 없습니다)")){st.students=[];save();renderStudents();renderPlacement();renderPrint();toast("전체 삭제했습니다.");}};
 $("#addTag").onclick=()=>{const v=$("#newTag").value.trim();if(v&&!st.tags.includes(v)){st.tags.push(v);$("#newTag").value="";save();renderTagManage();}};
 $("#newTag").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#addTag").click();}};
