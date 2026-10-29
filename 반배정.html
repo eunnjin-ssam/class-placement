@@ -127,7 +127,7 @@
   <section id="view-setup">
     <div class="card">
       <h2>① 학년 · 반 개수</h2>
-      <p class="sub">새 학년의 학년명과 반 개수를 먼저 정하세요. 반 개수를 바꾸면 아래 ② 반 목록이 자동으로 늘거나 줄어듭니다.</p>
+      <p class="sub">새 학년의 학년명과 반 개수를 정해주세요.</p>
       <div class="row">
         <label class="fld" style="margin:0"><span>학년</span><input id="s_grade" placeholder="예: 3학년"></label>
         <label class="fld" style="margin:0"><span>반 개수</span><input id="s_count" type="number" min="1" max="20" value="2"></label>
@@ -141,10 +141,10 @@
     </div>
 
     <div class="card">
-      <h2>③ 작년 반 명단</h2>
-      <p class="sub">작년에 같은 반이던 학생들이 올해 한 반에 몰리지 않도록, 작년 반 이름을 등록해 두면 학생 입력 시 선택할 수 있습니다.</p>
+      <h2>③ 현재 반 명단</h2>
+      <p class="sub">현재 같은 반인 학생들이 새로 배정될 반에 몰리지 않도록, 현재 반 이름을 등록해 두면 학생 입력 시 선택할 수 있습니다.</p>
       <div class="row" style="align-items:flex-end">
-        <label class="fld" style="flex:2;margin:0"><span>작년 반 이름 (쉼표로 여러 개)</span><input id="ly_input" placeholder="예: 2-1, 2-2, 2-3, 2-4"></label>
+        <label class="fld" style="flex:2;margin:0"><span>현재 반 이름 (쉼표로 여러 개)</span><input id="ly_input" placeholder="예: 2-1, 2-2, 2-3, 2-4"></label>
         <button class="primary" id="ly_add" style="flex:0 0 auto">추가</button>
       </div>
       <div id="lyList" class="tagpick" style="margin-top:12px"></div>
@@ -173,7 +173,7 @@
           <thead><tr>
             <th style="width:46px">순위</th><th class="nm">이름</th><th style="width:58px">성별</th>
             <th style="width:64px">성적</th><th style="width:64px">태도</th>
-            <th style="width:64px">총점</th><th style="width:92px">작년반</th><th>태그</th>
+            <th style="width:64px">총점</th><th style="width:92px">현재반</th><th>태그</th>
           </tr></thead>
           <tbody id="stBody"></tbody>
         </table>
@@ -184,14 +184,16 @@
     <details id="importBox">
       <summary>📋 엑셀 / CSV 가져오기</summary>
       <div class="inner">
-        <p class="sub">엑셀에서 복사해 붙여넣으면 한 번에 등록됩니다. 열 순서: <b>이름 · 성별(남/여) · 성적 · 태도 · 작년반 · 태그(세미콜론 ; 구분)</b>. 머리글 줄은 자동으로 건너뜁니다.</p>
+        <p class="sub">엑셀에서 복사해 붙여넣으면 한 번에 등록됩니다. 열 순서: <b>이름 · 성별(남/여) · 성적 · 태도 · 현재반 · 태그</b>. 태그가 여러 개면 <b>쉼표(,)</b>로 구분하세요(예: 남산원, 느린학습자). 머리글 줄은 자동으로 건너뜁니다.</p>
+        <p class="tiny" style="margin:-8px 0 10px">💡 엑셀에서 현재반에 <b>5-1</b>처럼 넣으면 날짜(5월 1일)로 바뀔 수 있어요. 앞에 작은따옴표를 붙여 <b>'5-1</b>로 입력하거나 그 열을 ‘텍스트’ 서식으로 지정하면 됩니다. (날짜로 바뀐 채 들어와도 가져올 때 <b>5-1</b> 형태로 자동 복원합니다.)</p>
         <textarea id="paste" placeholder="김민준	남	46	43	2-1	리더&#10;이서연	여	39	48	2-2	&#10;..."></textarea>
         <div class="btnbar" style="margin-top:10px">
-          <button class="ghost" id="tplBtn" title="빈 입력 서식(머리글+예시) 받기">⬇ 입력 양식 받기</button>
+          <button class="ghost" id="tplBtn" title="모든 열이 텍스트 서식인 엑셀 양식">⬇ 입력 양식(엑셀)</button>
+          <button class="ghost sm" id="tplCsvBtn" title="CSV 양식으로 받기">CSV로</button>
           <button class="primary" id="importBtn">붙여넣기 반영</button>
           <button class="ghost sm" id="sampleBtn">예시 데이터 채우기</button>
         </div>
-        <p class="tiny" style="margin:8px 0 0">① <b>입력 양식 받기</b>로 빈 서식을 내려받아 엑셀로 채운 뒤 → ② 복사해 위에 붙여넣고 <b>붙여넣기 반영</b></p>
+        <p class="tiny" style="margin:8px 0 0">① <b>입력 양식(엑셀)</b>을 내려받아 채운 뒤(모든 열이 ‘텍스트’ 서식이라 <b>5-1</b>도 날짜로 안 바뀝니다) → ② 셀을 복사해 위에 붙여넣고 <b>붙여넣기 반영</b></p>
       </div>
     </details>
 
@@ -258,7 +260,7 @@
     <div class="row">
       <label class="fld"><span>성적 (50점)</span><input id="d_grade" type="number" min="0" max="50"></label>
       <label class="fld"><span>태도 (50점)</span><input id="d_attitude" type="number" min="0" max="50"></label>
-      <label class="fld"><span>작년 반</span><select id="d_ly"></select></label>
+      <label class="fld"><span>현재 반</span><select id="d_ly"></select></label>
     </div>
     <label class="fld"><span>태그</span><div class="tagpick" id="d_tags"></div></label>
   </div>
@@ -340,7 +342,7 @@ function syncClassCount(n){
 }
 function renderLastYear(){
   const box=$("#lyList");box.innerHTML="";
-  if(!st.lastYear.length){box.innerHTML='<span class="tiny">등록된 작년 반이 없습니다.</span>';return;}
+  if(!st.lastYear.length){box.innerHTML='<span class="tiny">등록된 현재 반이 없습니다.</span>';return;}
   st.lastYear.forEach((ly,i)=>{
     const b=document.createElement("span");b.className="tag";b.style.cssText="background:var(--panel2);border:1px solid var(--line);color:var(--ink)";
     b.innerHTML=`${esc(ly)} <b data-i="${i}">✕</b>`;
@@ -419,19 +421,31 @@ $("#d_save").onclick=e=>{
   save();renderStudents();renderPlacement();renderPrint();
 };
 
+// 엑셀이 '5-1' 등을 날짜로 바꿔버린 경우 → '월-일' 형태로 복원 (예: 2026-05-01 → 5-1)
+function normLastYear(v){
+  v=String(v==null?"":v).trim(); if(!v) return ""; let m;
+  if(m=v.match(/^\d{4}\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})\.?$/)) return (+m[1])+"-"+(+m[2]); // 2026-05-01, 2026. 5. 1.
+  if(m=v.match(/^(\d{1,2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*\d{2,4}$/)) return (+m[1])+"-"+(+m[2]); // 5/1/2026
+  if(m=v.match(/^(\d{1,2})\s*월\s*(\d{1,2})\s*일$/)) return (+m[1])+"-"+(+m[2]);                  // 5월 1일
+  return v;
+}
 function importPaste(){
   const raw=$("#paste").value.trim(); if(!raw)return;
   let lines=raw.split(/\r?\n/).filter(l=>l.trim());
-  const split=l=>l.includes("\t")?l.split("\t"):l.split(",");
+  // 따옴표(")를 인식하는 CSV 한 줄 분리 — 엑셀이 쉼표 든 칸을 "..."로 감싸도 안전
+  const splitCsv=l=>{const out=[];let cur="",q=false;for(let i=0;i<l.length;i++){const ch=l[i];
+    if(q){if(ch==='"'){if(l[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=ch;}
+    else{if(ch==='"')q=true;else if(ch===',')  {out.push(cur);cur="";}else cur+=ch;}}out.push(cur);return out;};
+  const split=l=>l.includes("\t")?l.split("\t"):splitCsv(l);
   if(lines.length){const c=split(lines[0]).map(x=>x.trim());
     if(c.some(x=>/이름|성명|name/i.test(x))||c.some(x=>/성적|태도/.test(x)))lines=lines.slice(1);}
   let added=0;
   lines.forEach(l=>{
     const c=split(l).map(x=>x.trim()); if(!c[0])return;
     const g=c[1]||""; const gender=/^남|m|M|boy/.test(g)?"남":(/^여|f|F|girl/.test(g)?"여":"남");
-    const tags=(c[5]||"").split(/[;|]/).map(x=>x.trim()).filter(Boolean);
+    const tags=(c[5]||"").split(/[;,|]/).map(x=>x.trim()).filter(Boolean);
     tags.forEach(t=>{if(!st.tags.includes(t))st.tags.push(t);});
-    const ly=c[4]||""; if(ly&&!st.lastYear.includes(ly))st.lastYear.push(ly);
+    const ly=normLastYear(c[4]); if(ly&&!st.lastYear.includes(ly))st.lastYear.push(ly);
     st.students.push({id:st.seq++,name:c[0],gender,grade:c[2]?Number(c[2]):"",attitude:c[3]?Number(c[3]):"",
       lastYearClass:ly,tags,assigned:null,locked:false});
     added++;
@@ -439,11 +453,86 @@ function importPaste(){
   $("#paste").value="";save();renderStudents();renderSetup();renderPlacement();renderPrint();
   toast(added+"명을 추가했습니다.");
 }
+/* ---- 텍스트 서식 .xlsx 입력 양식 생성 (외부 라이브러리 없이) ---- */
+const CRC_TABLE=(()=>{let c,t=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC_TABLE[(c^b[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function makeZip(files){
+  const enc=new TextEncoder();
+  const u16=n=>[n&255,(n>>8)&255], u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>24)&255];
+  const chunks=[],central=[]; let offset=0;
+  files.forEach(f=>{
+    const name=enc.encode(f.name), data=f.data, crc=crc32(data);
+    const lh=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+    const local=new Uint8Array(lh.length+name.length); local.set(lh,0); local.set(name,lh.length);
+    const cd=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    const cen=new Uint8Array(cd.length+name.length); cen.set(cd,0); cen.set(name,cd.length);
+    chunks.push(local,data); central.push(cen); offset+=local.length+data.length;
+  });
+  let cenSize=0; central.forEach(c=>cenSize+=c.length);
+  const end=new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cenSize),u32(offset),u16(0)));
+  const parts=[...chunks,...central,end]; let total=0; parts.forEach(p=>total+=p.length);
+  const out=new Uint8Array(total); let pos=0; parts.forEach(p=>{out.set(p,pos);pos+=p.length;});
+  return out;
+}
+function downloadXlsx(){
+  const enc=new TextEncoder();
+  const header=["이름","성별","성적","태도","현재반","태그"];
+  const examples=[["김민준","남","46","43","2-1","리더"],["이서연","여","39","48","2-2","쌍둥이, 리더"],["(예시 줄은 지우고 입력하세요)","","","","",""]];
+  const xesc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  const cell=(col,row,txt,s)=>`<c r="${col}${row}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xesc(txt)}</t></is></c>`;
+  const cols=["A","B","C","D","E","F"];
+  let rows=`<row r="1">`+header.map((h,i)=>cell(cols[i],1,h,2)).join("")+`</row>`;
+  examples.forEach((ex,ri)=>{rows+=`<row r="${ri+2}">`+ex.map((v,i)=>cell(cols[i],ri+2,v,1)).join("")+`</row>`;});
+  const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
+    +`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`
+    +`<cols><col min="1" max="6" width="16" style="1" customWidth="1"/></cols>`
+    +`<sheetData>${rows}</sheetData></worksheet>`;
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
+    +`<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`
+    +`<fonts count="2"><font><sz val="11"/><name val="맑은 고딕"/></font><font><b/><sz val="11"/><name val="맑은 고딕"/></font></fonts>`
+    +`<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>`
+    +`<borders count="1"><border/></borders>`
+    +`<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>`
+    +`<cellXfs count="3">`
+    +`<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>`
+    +`<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>`
+    +`<xf numFmtId="49" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>`
+    +`</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const workbook=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
+    +`<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`
+    +`<sheets><sheet name="명단" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+  const wbRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
+    +`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`
+    +`<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>`
+    +`<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+  const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
+    +`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">`
+    +`<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`
+    +`<Default Extension="xml" ContentType="application/xml"/>`
+    +`<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>`
+    +`<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`
+    +`<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
+  const rels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
+    +`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`
+    +`<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+  const files=[
+    {name:"[Content_Types].xml",data:enc.encode(ct)},
+    {name:"_rels/.rels",data:enc.encode(rels)},
+    {name:"xl/workbook.xml",data:enc.encode(workbook)},
+    {name:"xl/_rels/workbook.xml.rels",data:enc.encode(wbRels)},
+    {name:"xl/styles.xml",data:enc.encode(styles)},
+    {name:"xl/worksheets/sheet1.xml",data:enc.encode(sheet)}
+  ];
+  const zip=makeZip(files);
+  const blob=new Blob([zip],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="학생명단_입력양식.xlsx";a.click();
+  toast("엑셀 입력 양식(.xlsx)을 받았습니다. 모든 열이 텍스트라 5-1도 그대로 입력됩니다.");
+}
 function downloadTemplate(){
   const rows=[
-    ["이름","성별","성적","태도","작년반","태그"],
+    ["이름","성별","성적","태도","현재반","태그"],
     ["김민준","남","46","43","2-1","리더"],
-    ["이서연","여","39","48","2-2","쌍둥이;리더"],
+    ["이서연","여","39","48","2-2","쌍둥이, 리더"],
     ["(예시 줄은 지우고 입력하세요)","","","","",""]
   ];
   const csv=rows.map(r=>r.map(x=>{x=String(x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;}).join(",")).join("\r\n");
@@ -452,7 +541,7 @@ function downloadTemplate(){
   toast("입력 양식을 다운로드했습니다. 엑셀로 채운 뒤 가져오기에 붙여넣으세요.");
 }
 function exportCsv(){
-  const head=["이름","성별","성적","태도","총점","작년반","태그","배정반"];
+  const head=["이름","성별","성적","태도","총점","현재반","태그","배정반"];
   const rows=byScore().map(s=>[s.name,s.gender,s.grade,s.attitude,total(s),s.lastYearClass||"",(s.tags||[]).join(";"),s.assigned!=null?st.classes[s.assigned]?.name||"":""]);
   const csv=[head,...rows].map(r=>r.map(x=>{x=String(x==null?"":x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;}).join(",")).join("\r\n");
   const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
@@ -481,7 +570,7 @@ function autoAssign(jitter){
     });
   });
 
-  // ── 2단계: 같은 태그/작년반이 몰린 반을, 같은 성별·비슷한 점수 학생과 맞바꿔 분산 ──
+  // ── 2단계: 같은 태그/현재반이 몰린 반을, 같은 성별·비슷한 점수 학생과 맞바꿔 분산 ──
   const items=[...st.tags.map(k=>["tag",k]),...st.lastYear.map(k=>["ly",k])];
   for(let iter=0;iter<300;iter++){
     let moved=false;
@@ -704,13 +793,13 @@ $("#ly_input").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#ly_add")
 $("#sortMode").onchange=e=>{st.sortMode=e.target.value;save();renderStudents();};
 $("#importBtn").onclick=importPaste;
 $("#sampleBtn").onclick=()=>{$("#paste").value=
-`이름	성별	성적	태도	작년반	태그
+`이름	성별	성적	태도	현재반	태그
 김민준	남	46	43	2-1	리더
 이서연	여	39	48	2-2
 박도윤	남	32	35	2-1	요주의
 최지우	여	44	45	2-3	쌍둥이
 최민서	남	42	44	2-3	쌍둥이
-정하준	남	27	30	2-4	느린학습자;정서
+정하준	남	27	30	2-4	느린학습자, 정서
 강서윤	여	48	46	2-2	리더
 윤지호	남	36	37	2-1
 임하은	여	40	41	2-4	남산원
@@ -722,7 +811,8 @@ $("#sampleBtn").onclick=()=>{$("#paste").value=
 류지안	여	34	36	2-2	다문화
 문건우	남	38	45	2-4	건강`;};
 $("#addStudent").onclick=()=>editStudent(null);
-$("#tplBtn").onclick=downloadTemplate;
+$("#tplBtn").onclick=downloadXlsx;
+$("#tplCsvBtn").onclick=downloadTemplate;
 $("#exportCsv").onclick=exportCsv;
 $("#clearStudents").onclick=async()=>{if(await askConfirm("모든 학생을 삭제할까요? (되돌릴 수 없습니다)")){st.students=[];save();renderStudents();renderPlacement();renderPrint();toast("전체 삭제했습니다.");}};
 $("#addTag").onclick=()=>{const v=$("#newTag").value.trim();if(v&&!st.tags.includes(v)){st.tags.push(v);$("#newTag").value="";save();renderTagManage();}};
