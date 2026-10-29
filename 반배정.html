@@ -236,7 +236,7 @@
         <button id="hwpBtn">📄 한글(HWP)용 내보내기</button>
         <label class="tiny" style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="showScores" checked style="width:auto"> 점수(성적·태도·총점) 표시</label>
       </div>
-      <p class="tiny" style="margin:10px 0 0">※ 한글용 파일은 <b>.rtf</b>로 저장됩니다. 한글에서 연 뒤 <b>다른 이름으로 저장 → 한글 문서(*.hwp)</b>를 선택하면 .hwp가 됩니다.</p>
+      <p class="tiny" style="margin:10px 0 0">※ 한글용 파일은 <b>.doc</b>로 저장됩니다. 한글에서 열 때 문자코드는 <b>‘유니코드(UTF-8)’</b>를 선택하세요. 연 뒤 <b>다른 이름으로 저장 → 한글 문서(*.hwp)</b>로 저장하면 됩니다.</p>
     </div>
     <div id="printArea"></div>
   </section>
@@ -755,35 +755,33 @@ function renderPrint(){
 /* ---- 한글용 내보내기: RTF 생성 → 한글이 문자코드 선택 없이 안정적으로 열림(한글은 \uN 유니코드로 삽입) ---- */
 function exportHwp(){
   const sc=$("#showScores")?.checked;
-  const rtfEsc=s=>{s=String(s==null?"":s);let o="";for(let i=0;i<s.length;i++){const ch=s[i],c=s.charCodeAt(i);
-    if(ch==='\\'||ch==='{'||ch==='}')o+='\\'+ch; else if(c<128)o+=ch; else{let u=c;if(u>32767)u-=65536;o+='\\u'+u+'?';}}return o;};
-  const cols   = sc ? [850,1440,840,880,880,880,2000] : [1100,2040,1200,3600]; // 이름 -40%, 성별·성적·태도·총점 -20%
+  const we=esc;
+  const colPx = sc ? [44,96,56,58,58,58,230] : [64,150,88,298]; // 이름 좁게·성별/점수 축소, 비고가 나머지 폭 채움
   const headers= sc ? ["번호","이름","성별","성적","태도","총점","비고(태그)"] : ["번호","이름","성별","비고(태그)"];
-  const aligns = sc ? ["center","center","center","center","center","center","center"] : ["center","center","center","center"];
-  const edges=[]; let acc=0; cols.forEach(w=>{acc+=w;edges.push(acc);});
-  const brd="\\clbrdrt\\brdrs\\brdrw10\\clbrdrl\\brdrs\\brdrw10\\clbrdrb\\brdrs\\brdrw10\\clbrdrr\\brdrs\\brdrw10";
-  const rowDef="\\trowd\\trgaph80\\trqc"+edges.map(e=>brd+"\\cellx"+e).join("");
-  const row=(cells,bold)=>rowDef+" "+cells.map((c,i)=>"\\pard\\intbl\\"+(aligns[i]==="center"?"qc":"ql")+" "
-      +(bold?"{\\b "+rtfEsc(c)+"}":rtfEsc(c))+"\\cell ").join("")+"\\row\n";
+  const W = colPx.reduce((a,b)=>a+b,0);
   let body="";
   st.classes.forEach((cls,ci)=>{
     const list=st.students.filter(s=>s.assigned===ci).sort((a,b)=>a.name.localeCompare(b.name,"ko"));
     const m=list.filter(s=>s.gender==="남").length,f=list.filter(s=>s.gender==="여").length;
-    body+="\\pard\\sa60\\b\\fs32 "+rtfEsc(`${st.grade||""} ${cls.name} 명렬표`)+"\\b0\\fs20\\par\n";
-    body+="\\pard\\sa120\\fs18 "+rtfEsc(`담임: ${cls.teacher||"____"} / 총 ${list.length}명 (남 ${m} · 여 ${f})`)+"\\fs20\\par\n";
-    body+=row(headers,true);
-    list.forEach((s,i)=>{
+    const pb = ci>0 ? "page-break-before:always;" : "";
+    const cg = `<colgroup>${colPx.map(w=>`<col style="width:${w}px">`).join("")}</colgroup>`;
+    const head = `<tr>${headers.map(h=>`<td style="text-align:center;background:#eeeeee;font-weight:bold">${we(h)}</td>`).join("")}</tr>`;
+    const rows = list.map((s,i)=>{
       const vals = sc ? [i+1,s.name,s.gender,s.grade??"",s.attitude??"",total(s),(s.tags||[]).join(", ")]
                       : [i+1,s.name,s.gender,(s.tags||[]).join(", ")];
-      body+=row(vals.map(String),false);
-    });
-    body+= (ci<st.classes.length-1) ? "\\pard\\par\\page\n" : "\\pard\\par\n";
+      return `<tr>${vals.map(v=>`<td style="text-align:center">${we(v)}</td>`).join("")}</tr>`;
+    }).join("");
+    body += `<div style="${pb}text-align:center">`
+      +`<h2 style="font-size:15pt;margin:0 0 4pt">${we(`${st.grade||""} ${cls.name} 명렬표`)}</h2>`
+      +`<p style="font-size:10pt;margin:0 0 8pt">${we(`담임: ${cls.teacher||"____"} / 총 ${list.length}명 (남 ${m} · 여 ${f})`)}</p>`
+      +`<table border="1" cellpadding="4" cellspacing="0" align="center" style="border-collapse:collapse;table-layout:fixed;width:${W}px;font-family:바탕;font-size:11pt">`
+      +`${cg}${head}${rows}</table></div>`;
   });
-  const rtf="{\\rtf1\\ansi\\ansicpg949\\deff0\\paperw11906\\paperh16838\\margl1153\\margr1153\\margt1440\\margb1440\n"
-    +"{\\fonttbl{\\f0\\fnil\\fcharset129 Malgun Gothic;}}\n\\f0\\fs20\n"+body+"}";
-  const blob=new Blob([rtf],{type:"application/rtf"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(st.grade||"반배정")+"_명렬표.rtf";a.click();
-  toast("한글용(.rtf) 파일을 저장했습니다. 한글에서 바로 열어 .hwp로 저장하세요.");
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">`
+    +`<head><meta charset="utf-8"><title>명렬표</title></head><body>${body}</body></html>`;
+  const blob=new Blob(["﻿"+html],{type:"application/msword;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(st.grade||"반배정")+"_명렬표.doc";a.click();
+  toast("한글용(.doc) 파일을 저장했습니다. 열 때 문자코드는 ‘유니코드(UTF-8)’를 선택하세요.");
 }
 
 /* ================= NAV & EVENTS ================= */
