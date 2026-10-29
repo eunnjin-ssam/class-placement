@@ -187,7 +187,7 @@
               <option value="score">점수 높은순</option>
               <option value="name">이름 가나다순</option>
             </select></label>
-          <button class="sm primary" id="addStudent">+ 학생</button>
+          <button class="sm primary" id="addStudent">학생추가</button>
           <button class="sm danger" id="clearStudents">전체삭제</button>
         </div>
       </div>
@@ -202,7 +202,7 @@
           <tbody id="stBody"></tbody>
         </table>
       </div>
-      <div class="empty" id="stEmpty">학생이 없습니다. “+ 학생” 또는 위 “엑셀/CSV 가져오기”를 이용하세요.</div>
+      <div class="empty" id="stEmpty">학생이 없습니다. ‘엑셀 가져오기’ 또는 ‘학생추가’를 이용하세요.</div>
     </div>
   </section>
 
@@ -224,7 +224,7 @@
     <div class="classgrid" id="placeGrid"></div>
     <div class="card noprint" style="margin-top:14px">
       <h2 style="font-size:14px">미배치 학생 <span class="muted" id="unCount"></span></h2>
-      <div class="students" id="unassigned" style="flex-direction:row;flex-wrap:wrap"></div>
+      <div class="students" id="unassigned" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px"></div>
     </div>
   </section>
 
@@ -441,19 +441,21 @@ function importPaste(){
   const split=l=>l.includes("\t")?l.split("\t"):splitCsv(l);
   if(lines.length){const c=split(lines[0]).map(x=>x.trim());
     if(c.some(x=>/이름|성명|name/i.test(x))||c.some(x=>/성적|태도/.test(x)))lines=lines.slice(1);}
-  let added=0;
+  let added=0, skipped=0;
+  const existing=new Set(st.students.map(s=>String(s.name).trim()));  // 이미 있는 이름
   lines.forEach(l=>{
     const c=split(l).map(x=>x.trim()); if(!c[0])return;
+    if(existing.has(c[0])){skipped++;return;}                        // 이름 중복 → 추가하지 않음
     const g=c[1]||""; const gender=/^남|m|M|boy/.test(g)?"남":(/^여|f|F|girl/.test(g)?"여":"남");
     const tags=(c[5]||"").split(/[;,|]/).map(x=>x.trim()).filter(Boolean);
     tags.forEach(t=>{if(!st.tags.includes(t))st.tags.push(t);});
     const ly=normLastYear(c[4]); if(ly&&!st.lastYear.includes(ly))st.lastYear.push(ly);
     st.students.push({id:st.seq++,name:c[0],gender,grade:c[2]?Number(c[2]):"",attitude:c[3]?Number(c[3]):"",
       lastYearClass:ly,tags,assigned:null,locked:false});
-    added++;
+    existing.add(c[0]); added++;
   });
   $("#paste").value="";save();renderStudents();renderSetup();renderPlacement();renderPrint();
-  toast(added+"명을 추가했습니다.");
+  toast(skipped? `${added}명 추가 (이름 중복 ${skipped}명 제외)` : `${added}명을 추가했습니다.`);
 }
 /* ---- 텍스트 서식 .xlsx 입력 양식 생성 (외부 라이브러리 없이) ---- */
 const CRC_TABLE=(()=>{let c,t=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
