@@ -73,7 +73,7 @@
   .students{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1}
   .scard{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 9px;cursor:grab;display:flex;flex-direction:column;align-items:stretch;gap:4px;font-size:13px}
   .scard:active{cursor:grabbing}
-  .scard.sel{outline:2px solid var(--accent);outline-offset:-1px}
+  .scard.swaphover{outline:2px solid var(--accent);outline-offset:-1px;background:var(--panel)}
   .scard.lock{border-left:3px solid var(--accent)}
   .scard .top{display:flex;align-items:center;gap:7px}
   .scard .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -210,11 +210,9 @@
   <section id="view-placement" hidden>
     <div class="card noprint">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <div><h2 style="margin:0">반 배치</h2><p class="sub" style="margin:4px 0 0">자동 배치 후 이름표를 끌어 옮기거나, 맞교환 모드로 두 명을 바꾸세요. 🔒은 자동 배치에서 제외됩니다.</p></div>
+        <div><h2 style="margin:0">반 배치</h2><p class="sub" style="margin:4px 0 0;line-height:1.7">⚙️ <b>자동 배치</b>를 누르면 성별·점수·태그 균형을 맞춰 배치되고, 다시 누를 때마다 다른 조합이 나옵니다.<br>이름표를 끌어 <b>빈 자리에 놓으면 이동</b>, <b>다른 학생 위에 놓으면 서로 교환</b>됩니다. 🔒을 누른 학생은 자동 배치에서 제외(고정)됩니다.</p></div>
         <div class="btnbar">
           <button class="primary" id="autoBtn">⚙️ 자동 배치</button>
-          <button id="rerollBtn" title="다른 조합으로 다시">🎲 다시</button>
-          <button id="swapBtn" class="ghost">🔁 맞교환</button>
           <button id="undoBtn" class="ghost" disabled>↶ 되돌리기</button>
           <button id="clearPlace" class="ghost sm danger">초기화</button>
         </div>
@@ -236,10 +234,9 @@
       <div class="btnbar">
         <button class="primary" id="printBtn">🖨️ 인쇄 / PDF 저장</button>
         <button id="hwpBtn">📄 한글(HWP)용 내보내기</button>
-        <button class="ghost sm" id="csvBtn2">💾 명단 저장하기</button>
         <label class="tiny" style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="showScores" checked style="width:auto"> 점수(성적·태도·총점) 표시</label>
       </div>
-      <p class="tiny" style="margin:10px 0 0">※ 한글용 파일은 한글에서 열리는 <b>.doc</b>로 저장됩니다. 한글에서 연 뒤 <b>다른 이름으로 저장 → 한글 문서(*.hwp)</b>를 선택하면 .hwp가 됩니다.</p>
+      <p class="tiny" style="margin:10px 0 0">※ 한글용 파일은 <b>.rtf</b>로 저장됩니다. 한글에서 연 뒤 <b>다른 이름으로 저장 → 한글 문서(*.hwp)</b>를 선택하면 .hwp가 됩니다.</p>
     </div>
     <div id="printArea"></div>
   </section>
@@ -638,7 +635,7 @@ function autoAssign(jitter){
 }
 
 /* ---- placement render ---- */
-let swapMode=false, swapSel=null, undoStack=[];
+let undoStack=[];
 function snapshot(){return JSON.stringify(st.students.map(s=>[s.id,s.assigned,s.locked]));}
 function pushUndo(){undoStack.push(snapshot());if(undoStack.length>30)undoStack.shift();$("#undoBtn").disabled=false;}
 function doUndo(){if(!undoStack.length)return;const snap=JSON.parse(undoStack.pop());
@@ -697,7 +694,7 @@ function renderPlacement(){
 }
 function studentCard(s){
   const d=document.createElement("div");
-  d.className="scard"+(s.locked?" lock":"")+(swapSel===s.id?" sel":"");
+  d.className="scard"+(s.locked?" lock":"");
   d.draggable=true;d.dataset.id=s.id;
   const tg=(s.tags||[]).map(t=>tagHTML(t,true)).join("");
   d.innerHTML=`<div class="top"><span class="lk ${s.locked?"on":""}" title="고정">${s.locked?"🔒":"🔓"}</span>`
@@ -706,12 +703,14 @@ function studentCard(s){
     +(tg?`<div class="ctags">${tg}</div>`:"");
   d.querySelector(".lk").onclick=e=>{e.stopPropagation();s.locked=!s.locked;save();renderPlacement();};
   d.ondragstart=e=>{e.dataTransfer.setData("id",s.id);e.dataTransfer.effectAllowed="move";};
-  d.onclick=()=>{ if(!swapMode)return;
-    if(swapSel==null){swapSel=s.id;renderPlacement();return;}
-    if(swapSel===s.id){swapSel=null;renderPlacement();return;}
-    const a=st.students.find(x=>x.id===swapSel); pushUndo();
-    const tmp=a.assigned;a.assigned=s.assigned;s.assigned=tmp; swapSel=null;save();renderPlacement();renderPrint();
-  };
+  // 다른 학생 카드 위에 드롭하면 두 명을 서로 교환 (인원 유지)
+  d.ondragover=e=>{e.preventDefault();e.stopPropagation();d.classList.add("swaphover");};
+  d.ondragleave=()=>d.classList.remove("swaphover");
+  d.ondrop=e=>{e.preventDefault();e.stopPropagation();d.classList.remove("swaphover");
+    const id=+e.dataTransfer.getData("id"); if(!id||id===s.id)return;
+    const a=st.students.find(x=>x.id===id); if(!a)return;
+    pushUndo(); const t=a.assigned; a.assigned=s.assigned; s.assigned=t;
+    save();renderPlacement();renderPrint();};
   return d;
 }
 function setupDrop(box,ci){
@@ -729,9 +728,6 @@ function renderWarnings(){
   if(sizes.length&&Math.max(...sizes)-Math.min(...sizes)>1)msgs.push(`반별 인원 차이가 2명 이상입니다 (${sizes.join(" / ")}).`);
   area.innerHTML=msgs.length?`<div class="warnbox"><b>⚠️ 확인하세요</b><ul style="margin:6px 0 0;padding-left:18px">${msgs.map(m=>`<li>${m}</li>`).join("")}</ul></div>`:"";
 }
-function setSwap(on){swapMode=on;swapSel=null;const b=$("#swapBtn");
-  b.classList.toggle("ghost",!on);b.classList.toggle("primary",on);
-  b.textContent=on?"🔁 맞교환 ON (두 명 클릭)":"🔁 맞교환";renderPlacement();}
 
 /* ================= PRINT ================= */
 function renderPrint(){
@@ -756,28 +752,38 @@ function renderPrint(){
   });
 }
 
-/* ---- 한글(HWP)용 내보내기: 한글이 여는 .doc(HTML) 생성 → 한글에서 .hwp로 저장 ---- */
+/* ---- 한글용 내보내기: RTF 생성 → 한글이 문자코드 선택 없이 안정적으로 열림(한글은 \uN 유니코드로 삽입) ---- */
 function exportHwp(){
   const sc=$("#showScores")?.checked;
+  const rtfEsc=s=>{s=String(s==null?"":s);let o="";for(let i=0;i<s.length;i++){const ch=s[i],c=s.charCodeAt(i);
+    if(ch==='\\'||ch==='{'||ch==='}')o+='\\'+ch; else if(c<128)o+=ch; else{let u=c;if(u>32767)u-=65536;o+='\\u'+u+'?';}}return o;};
+  const cols   = sc ? [850,1440,840,880,880,880,2000] : [1100,2040,1200,3600]; // 이름 -40%, 성별·성적·태도·총점 -20%
+  const headers= sc ? ["번호","이름","성별","성적","태도","총점","비고(태그)"] : ["번호","이름","성별","비고(태그)"];
+  const aligns = sc ? ["center","center","center","center","center","center","center"] : ["center","center","center","center"];
+  const edges=[]; let acc=0; cols.forEach(w=>{acc+=w;edges.push(acc);});
+  const brd="\\clbrdrt\\brdrs\\brdrw10\\clbrdrl\\brdrs\\brdrw10\\clbrdrb\\brdrs\\brdrw10\\clbrdrr\\brdrs\\brdrw10";
+  const rowDef="\\trowd\\trgaph80\\trqc"+edges.map(e=>brd+"\\cellx"+e).join("");
+  const row=(cells,bold)=>rowDef+" "+cells.map((c,i)=>"\\pard\\intbl\\"+(aligns[i]==="center"?"qc":"ql")+" "
+      +(bold?"{\\b "+rtfEsc(c)+"}":rtfEsc(c))+"\\cell ").join("")+"\\row\n";
   let body="";
   st.classes.forEach((cls,ci)=>{
     const list=st.students.filter(s=>s.assigned===ci).sort((a,b)=>a.name.localeCompare(b.name,"ko"));
     const m=list.filter(s=>s.gender==="남").length,f=list.filter(s=>s.gender==="여").length;
-    body+=`<h2 style="font-family:굴림;font-size:15pt;margin:0 0 4pt">${esc(st.grade||"")} ${esc(cls.name)} 명렬표</h2>`
-      +`<p style="font-size:10pt;margin:0 0 6pt">담임: ${esc(cls.teacher||"____")} / 총 ${list.length}명 (남 ${m} · 여 ${f})</p>`
-      +`<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-size:11pt;width:100%;font-family:바탕">`
-      +`<tr style="background:#eee;font-weight:bold"><td align="center">번호</td><td align="center">이름</td><td align="center">성별</td>`
-      +(sc?`<td align="center">성적</td><td align="center">태도</td><td align="center">총점</td>`:"")+`<td align="center">비고(태그)</td></tr>`
-      +list.map((s,i)=>`<tr><td align="center">${i+1}</td><td>${esc(s.name)}</td><td align="center">${esc(s.gender)}</td>`
-        +(sc?`<td align="center">${s.grade??""}</td><td align="center">${s.attitude??""}</td><td align="center">${total(s)}</td>`:"")
-        +`<td>${esc((s.tags||[]).join(", "))}</td></tr>`).join("")
-      +`</table><p style="page-break-after:always">&nbsp;</p>`;
+    body+="\\pard\\sa60\\b\\fs32 "+rtfEsc(`${st.grade||""} ${cls.name} 명렬표`)+"\\b0\\fs20\\par\n";
+    body+="\\pard\\sa120\\fs18 "+rtfEsc(`담임: ${cls.teacher||"____"} / 총 ${list.length}명 (남 ${m} · 여 ${f})`)+"\\fs20\\par\n";
+    body+=row(headers,true);
+    list.forEach((s,i)=>{
+      const vals = sc ? [i+1,s.name,s.gender,s.grade??"",s.attitude??"",total(s),(s.tags||[]).join(", ")]
+                      : [i+1,s.name,s.gender,(s.tags||[]).join(", ")];
+      body+=row(vals.map(String),false);
+    });
+    body+= (ci<st.classes.length-1) ? "\\pard\\par\\page\n" : "\\pard\\par\n";
   });
-  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">`
-    +`<head><meta charset="utf-8"><title>명렬표</title></head><body>${body}</body></html>`;
-  const blob=new Blob(["﻿"+html],{type:"application/msword;charset=utf-8"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(st.grade||"반배정")+"_명렬표.doc";a.click();
-  toast("한글용(.doc) 파일을 저장했습니다. 한글에서 열어 .hwp로 저장하세요.");
+  const rtf="{\\rtf1\\ansi\\ansicpg949\\deff0\\paperw11906\\paperh16838\\margl1153\\margr1153\\margt1440\\margb1440\n"
+    +"{\\fonttbl{\\f0\\fnil\\fcharset129 Malgun Gothic;}}\n\\f0\\fs20\n"+body+"}";
+  const blob=new Blob([rtf],{type:"application/rtf"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(st.grade||"반배정")+"_명렬표.rtf";a.click();
+  toast("한글용(.rtf) 파일을 저장했습니다. 한글에서 바로 열어 .hwp로 저장하세요.");
 }
 
 /* ================= NAV & EVENTS ================= */
@@ -820,14 +826,11 @@ $("#clearStudents").onclick=async()=>{if(await askConfirm("모든 학생을 삭�
 $("#addTag").onclick=()=>{const v=$("#newTag").value.trim();if(v&&!st.tags.includes(v)){st.tags.push(v);$("#newTag").value="";save();renderTagManage();}};
 $("#newTag").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#addTag").click();}};
 
-$("#autoBtn").onclick=()=>{pushUndo();autoAssign(0);};
-$("#rerollBtn").onclick=()=>{pushUndo();autoAssign(900);};
-$("#swapBtn").onclick=()=>setSwap(!swapMode);
+$("#autoBtn").onclick=()=>{pushUndo();autoAssign(900);};
 $("#undoBtn").onclick=doUndo;
 $("#clearPlace").onclick=async()=>{if(await askConfirm("배치를 모두 초기화할까요? (학생 정보는 유지)")){pushUndo();st.students.forEach(s=>{s.assigned=null;s.locked=false;});save();renderPlacement();renderPrint();toast("배치를 초기화했습니다.");}};
 $("#printBtn").onclick=()=>{renderPrint();window.print();};
 $("#hwpBtn").onclick=exportHwp;
-$("#csvBtn2").onclick=exportCsv;
 $("#showScores").onchange=renderPrint;
 
 $("#themeBtn").onclick=()=>{const cur=document.documentElement.getAttribute("data-theme");
